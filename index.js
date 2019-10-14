@@ -87,13 +87,25 @@ server.get('/api/users', protected, (req, res) => {
 
 
 
-function protected(req){
+function protected(req, res, next){
   const {username, password} = req.headers
 
   if(username && password){
-    next()
-    // I forgot how to write middlewear XD
-  }
+    Users.findBy({ username })
+      .first()
+      .then(user => {
+        if (user && bcrypt.compareSync(password, user.password)) {
+          next();
+        } else {
+          res.status(401).json({ message: 'YOU SHALL NOT PASS' });
+        }
+      })
+      .catch(error => {
+        res.status(500).json(error);
+      });
+    } else {
+      res.status(400).json({message: 'fix you stuff boi'})
+    }
 }
 
 
